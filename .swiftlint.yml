@@ -1,8 +1,0 @@
-disabled_rules:
-  - large_tuple
-  - identifier_name
-
-excluded:
-  - Tests
-  - .build
-  - .swiftpm

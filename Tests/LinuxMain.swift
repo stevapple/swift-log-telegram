@@ -1,6 +1,5 @@
-import XCTest
-
 import LoggingTelegramTests
+import XCTest
 
 var tests = [XCTestCaseEntry]()
 tests += LoggingTelegramTests.__allTests()

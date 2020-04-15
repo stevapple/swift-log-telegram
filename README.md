@@ -39,7 +39,7 @@ LoggingTelegram uses [Telegram Bot API](https://core.telegram.org/bots/api) to s
 
 You can chat with [BotFather](https://t.me/BotFather) to create a new bot and get its API token. The config methods are described [here](https://core.telegram.org/bots#6-botfather). 
 
-You need to pass the token to `TelegramLogHandler` to set it up. 
+You need to pass the token to `TelegramLogHandler.init` to set it up. 
 
 ### Get a Target Chat ID
 
@@ -47,7 +47,7 @@ You can access a chat by its ID. There are various ways to get the ID of a chat,
 
 You can create a group chat with `TelegramGroup.id(_:Int)`, a channel with `TelegramChannel.id(_:Int)` and a user chat with `TelegramUser.id(_:Int)`.
 
-Alternatively, you can create a channel by its name:  `TelegramChannel.name(_:String)`, remember to drop '@' prefix.
+Alternatively, you can create a channel by its name:  `TelegramChannel.name(_:String)`, remember to drop `@` prefix.
 
 ### Bootstrap SwiftLog
 
