@@ -60,10 +60,11 @@ public class TelegramLogHandler<T>: LogHandler where T: TelegramId {
 
   /// Creates a `TelegramLogHandler` for sending `Logger` output directly to Telegram.
   /// - Parameters:
-  ///   - label: The log label for he log handler.
-  ///   - chats: Target chats to send.
+  ///   - label: The log label for the log handler.
+  ///   - chat: The target chat to send to.
   ///   - token: Telegram Bot Token.
   ///   - level: (Optional) The minimal log level for this logger.
+  ///   - mute: (Optional) Sending this message to the user silently.
   public init(
     label: String,
     token: String,
