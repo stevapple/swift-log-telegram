@@ -134,44 +134,27 @@ public class TelegramLogHandler<T>: LogHandler where T: TelegramId {
       return
     }
 
-    var request = URLRequest(url: api)
-    request.httpMethod = "POST"
-    request.httpBody = payload
-    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.addValue("application/json", forHTTPHeaderField: "Accept")
-
-    let (data, resp, error) = URLSession.shared.synchronousDataTask(with: request)
-
-    guard (resp as? HTTPURLResponse) != nil else {
-      print("Failed to send Telegram message with receiving error")
-      return
-    }
-
-    if let error = error {
-      print("Failed to send Telegram message with connection error: \(error)")
-    }
-
-    guard let returnData = data else {
-      return
-    }
-
-    let returnStatus: TelegramReturn
-
-    do {
-      returnStatus = try JSONDecoder().decode(TelegramReturn.self, from: returnData)
-    } catch {
-      print("Parsing error. ")
-      return
-    }
-
-    switch returnStatus {
-    case .error(let code, let message):
-      print("Failed to send Telegram message with error: \(code)")
-      print("Error message: " + message)
-      return
-    case .ok:
-      break
-    }
+      // Asynchronous telegram API request execution
+      Task {
+          var request = URLRequest(url: api)
+          request.httpMethod = "POST"
+          request.httpBody = payload
+          request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+          request.addValue("application/json", forHTTPHeaderField: "Accept")
+          do {
+              let (data, _) = try await URLSession.shared.data(for: request)
+              let status = try JSONDecoder().decode(TelegramReturn.self, from: data)
+              switch status {
+              case .error(let code, let message):
+                  print("Failed to send Telegram message with error: \(code)")
+                  print("Error message: " + message)
+              case .ok:
+                  break
+              }
+          } catch {
+              print("Failed to send Telegram message: \(error)")
+          }
+      }
   }
 
   struct Message: Encodable {
