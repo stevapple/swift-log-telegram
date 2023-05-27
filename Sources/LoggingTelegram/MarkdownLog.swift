@@ -23,7 +23,7 @@ struct MarkdownLog: CustomStringConvertible {
       + "*\(message.telegramEscaping())*\n"
       + location.telegramEscaping()
       + (metadata.count > 0 ? "*Metadata*\n" : "")
-      + metadata.map { "*\($0.telegramEscaping())*: \($1)" }.joined(separator: "\n")
+      + metadata.map { "*\($0.telegramEscaping())*: \($1.telegramEscaping())" }.joined(separator: "\n")
       + (mentionedUsers.count > 0 ? "\n" : "")
       + mentionedUsers.map { "\($0)" }.joined(separator: " ")
   }

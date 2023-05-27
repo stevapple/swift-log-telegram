@@ -20,15 +20,9 @@ public var telegramLogDefaultLevel: Logger.Level = .critical
 /// Forked from `SlackLogHandler`.
 public class TelegramLogHandler<T>: LogHandler where T: TelegramId {
   private var timestamp: String {
-    var buffer = [Int8](repeating: 0, count: 255)
-    var timestamp = time(nil)
-    let localTime = localtime(&timestamp)
-    strftime(&buffer, buffer.count, "%Y-%m-%dT%H:%M:%S%z", localTime)
-    return buffer.withUnsafeBufferPointer {
-      $0.withMemoryRebound(to: CChar.self) {
-        String(cString: $0.baseAddress!)
-      }
-    }
+      let formatter = DateFormatter()
+      formatter.dateFormat = "yyyy-MM-dd HH:MM:SS"
+      return formatter.string(from: Date())
   }
 
   /// The log label for the log handler.
@@ -127,51 +121,42 @@ public class TelegramLogHandler<T>: LogHandler where T: TelegramId {
 
   private func send(_ telegramMessage: Message) {
     let payload: Data
-    do {
-      payload = try JSONEncoder().encode(telegramMessage)
-    } catch {
-      print("Parsing error. ")
-      return
-    }
+      do {
+          payload = try JSONEncoder().encode(telegramMessage)
+      } catch {
+          print("Parsing error. ")
+          return
+      }
 
-    var request = URLRequest(url: api)
-    request.httpMethod = "POST"
-    request.httpBody = payload
-    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.addValue("application/json", forHTTPHeaderField: "Accept")
+      // Asynchronous telegram API request execution
+      var request = URLRequest(url: api)
+      request.httpMethod = "POST"
+      request.httpBody = payload
+      request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+      request.addValue("application/json", forHTTPHeaderField: "Accept")
 
-    let (data, resp, error) = URLSession.shared.synchronousDataTask(with: request)
+      let task = URLSession.shared.dataTask(with: request) { data, response, error in
+          if let error {
+              print("Failed to send Telegram message: \(error)")
+              return
+          }
 
-    guard (resp as? HTTPURLResponse) != nil else {
-      print("Failed to send Telegram message with receiving error")
-      return
-    }
+          if let data {
+              guard let status = try? JSONDecoder().decode(TelegramReturn.self, from: data) else {
+                  print("Failed to send Telegram message: Response has incorrect format")
+                  return
+              }
 
-    if let error = error {
-      print("Failed to send Telegram message with connection error: \(error)")
-    }
-
-    guard let returnData = data else {
-      return
-    }
-
-    let returnStatus: TelegramReturn
-
-    do {
-      returnStatus = try JSONDecoder().decode(TelegramReturn.self, from: returnData)
-    } catch {
-      print("Parsing error. ")
-      return
-    }
-
-    switch returnStatus {
-    case .error(let code, let message):
-      print("Failed to send Telegram message with error: \(code)")
-      print("Error message: " + message)
-      return
-    case .ok:
-      break
-    }
+              switch status {
+              case .error(let code, let message):
+                  print("Failed to send Telegram message with error: \(code)")
+                  print("Error message: " + message)
+              case .ok:
+                  break
+              }
+          }
+      }
+      task.resume()
   }
 
   struct Message: Encodable {
